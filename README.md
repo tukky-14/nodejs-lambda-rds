@@ -1,0 +1,1 @@
+-   [AWS Lambda で PostgreSQL の RDS プロキシを使用する方法 - Node.js](https://qiita.com/tronicboy/items/eb91f57a6ec14418c629)
