@@ -1,38 +1,34 @@
-const pg = require('pg');
-const AWS = require('aws-sdk');
+// 'pg'モジュールのインポート
+import pkg from 'pg';
+const { Client } = pkg;
 
-exports.handler = async (event) => {
-    const signer = new AWS.RDS.Signer({
-        region: 'ap-northeast-1', // RDSプロキシを作ったRegionに合わせる
-        hostname: process.env.HOST, // 後々環境変数で設定する
-        port: 5432,
-        username: 'master', // 前回の記事で作成したSecretのusername
+// Lambdaハンドラ関数
+export const handler = async (event) => {
+    // PostgreSQLクライアントのインスタンスを作成
+    const client = new Client({
+        user: process.env.DB_USER, // データベースユーザー名
+        host: process.env.DB_HOST, // データベースホスト
+        database: process.env.DB_NAME, // データベース名
+        password: process.env.DB_PASSWORD, // データベースパスワード
+        port: 5432, // PostgreSQLのデフォルトポート（変更があれば変更する）
     });
 
-    const token = signer.getAuthToken({
-        username: 'master',
-    });
+    try {
+        // PostgreSQLデータベースに接続
+        await client.connect();
 
-    const dbConfig = {
-        user: 'master',
-        password: token,
-        port: 5432,
-        database: 'dev', // データベース作成時に指定したもの
-        host: process.env.HOST,
-        ssl: true,
-    };
+        // サンプルクエリの実行（例：現在時刻の取得）
+        const res = await client.query('SELECT NOW()');
 
-    const client = new pg.Client(dbConfig);
-
-    client.connect();
-
-    const res = await client.query('SELECT NOW();');
-
-    await client.end();
-
-    const response = {
-        statusCode: 200,
-        body: JSON.stringify(res.rows[0]),
-    };
-    return response;
+        // クエリ結果のログ出力と返却
+        console.log(res.rows[0]);
+        return res.rows[0];
+    } catch (err) {
+        // エラーのログ出力とスロー
+        console.error('データベース接続エラー', err);
+        throw err;
+    } finally {
+        // データベース接続の終了
+        await client.end();
+    }
 };
