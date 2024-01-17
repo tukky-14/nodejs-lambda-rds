@@ -1,12 +1,11 @@
 import pkg from 'pg';
 const { Client } = pkg;
 
-// グローバルスコープでクライアントを定義
+// グローバル変数でクライアントインスタンスを保持
 let client;
 
-// Lambdaハンドラ関数
-export const handler = async (event) => {
-    // 既存のクライアントがない場合は新たに作成
+// データベースへの接続を確立する関数
+async function connectToDatabase() {
     if (!client) {
         client = new Client({
             user: process.env.DB_USER,
@@ -15,16 +14,21 @@ export const handler = async (event) => {
             password: process.env.DB_PASSWORD,
             port: 5432,
         });
-    }
 
+        await client.connect();
+    }
+    return client;
+}
+
+// Lambdaハンドラ関数
+export const handler = async (event) => {
     try {
-        // 接続が閉じている場合は再接続
-        if (client._connected === false) {
-            await client.connect();
-        }
+        // データベースに接続（接続済みの場合は再利用）
+        const db = await connectToDatabase();
 
         // サンプルクエリの実行
-        const res = await client.query('SELECT NOW()');
+        const res = await db.query('SELECT NOW()');
+        console.log(res);
 
         // クエリ結果のログ出力と返却
         console.log(res.rows[0]);
@@ -34,6 +38,6 @@ export const handler = async (event) => {
         console.error('データベース接続エラー', err);
         throw err;
     }
-    // 注意: Lambda 実行コンテキストが終了するまで接続は開いたままになる
+    // 注意: データベース接続を閉じない（Lambda 実行コンテキストが保持される）
     // Lambda 関数の実行が終了しても接続が閉じないように、client.end()の呼び出しはしない
 };
