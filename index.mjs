@@ -2,17 +2,17 @@
 import pkg from 'pg';
 const { Client } = pkg;
 
+// PostgreSQLクライアントのインスタンスを作成
+const client = new Client({
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_NAME, // データベース名
+    password: process.env.DB_PASSWORD, // データベースパスワード
+    port: 5432, // PostgreSQLのデフォルトポート（変更があれば変更する）
+});
+
 // Lambdaハンドラ関数
 export const handler = async (event) => {
-    // PostgreSQLクライアントのインスタンスを作成
-    const client = new Client({
-        user: process.env.DB_USER, // データベースユーザー名
-        host: process.env.DB_HOST, // データベースホスト
-        database: process.env.DB_NAME, // データベース名
-        password: process.env.DB_PASSWORD, // データベースパスワード
-        port: 5432, // PostgreSQLのデフォルトポート（変更があれば変更する）
-    });
-
     try {
         // PostgreSQLデータベースに接続
         await client.connect();
