@@ -5,7 +5,7 @@ const { Client } = pkg;
 let client;
 
 // データベースへの接続を確立する関数
-async function connectToDatabase() {
+const connectToDatabase = async () => {
     if (!client) {
         client = new Client({
             user: process.env.DB_USER,
@@ -18,7 +18,7 @@ async function connectToDatabase() {
         await client.connect();
     }
     return client;
-}
+};
 
 // Lambdaハンドラ関数
 export const handler = async (event) => {
