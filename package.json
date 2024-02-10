@@ -1,5 +1,5 @@
 {
-    "name": "nodejs_lambda_rds",
+    "name": "nodejs-lambda-rds",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
